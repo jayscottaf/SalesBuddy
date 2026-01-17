@@ -11,9 +11,11 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
+    host: '0.0.0.0',
+    port: 5000,
+    allowedHosts: true,
     proxy: {
-      '/api': 'http://localhost:5000',
+      '/api': 'http://localhost:3001',
     },
     fs: {
       allow: [path.resolve(__dirname, '..')],

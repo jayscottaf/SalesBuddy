@@ -1,0 +1,26 @@
+# Salesbuddy CRM
+
+## Overview
+Salesbuddy is a sales meeting transcript analysis tool with AI-powered coaching. It provides a React frontend with a Node.js/Express backend.
+
+## Project Structure
+- `client/` - React + Vite frontend (runs on port 5000)
+- `server/` - Express API backend (runs on port 3001)
+- `shared/` - Shared TypeScript types
+- `api/` - Vercel serverless functions (not used in Replit)
+
+## Running the Application
+The app uses `npm run dev` which starts both frontend and backend concurrently:
+- Frontend: Vite dev server on 0.0.0.0:5000
+- Backend: Express API on localhost:3001
+
+The frontend proxies `/api` requests to the backend.
+
+## Configuration
+- `OPENAI_API_KEY` - Optional. If not set, the app uses fallback analysis.
+
+## Recent Changes
+- 2026-01-17: Configured for Replit environment
+  - Updated Vite to use port 5000 with allowedHosts for proxy support
+  - Moved backend to port 3001 to avoid conflicts
+  - Fixed tsx execution for server dev mode
