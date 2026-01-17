@@ -192,6 +192,54 @@ export default function SalespersonDashboard({ sellerName, meetings, onSelectMee
     }));
   }, [sortedMeetings]);
 
+  // Competitor statistics across all meetings
+  const competitorStats = useMemo(() => {
+    const compMap = new Map<string, {
+      count: number;
+      sentiments: ('positive' | 'negative' | 'neutral')[];
+      accounts: Set<string>;
+    }>();
+
+    meetings.forEach(m => {
+      m.competitors?.forEach(comp => {
+        const key = comp.name.toLowerCase();
+        const existing = compMap.get(key);
+        if (existing) {
+          existing.count++;
+          existing.sentiments.push(comp.sentiment);
+          if (m.accountName) existing.accounts.add(m.accountName);
+        } else {
+          const accounts = new Set<string>();
+          if (m.accountName) accounts.add(m.accountName);
+          compMap.set(key, {
+            count: 1,
+            sentiments: [comp.sentiment],
+            accounts,
+          });
+        }
+      });
+    });
+
+    return Array.from(compMap.entries())
+      .map(([name, data]) => {
+        const sentimentCounts = data.sentiments.reduce((acc, s) => {
+          acc[s] = (acc[s] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        const dominantSentiment = Object.entries(sentimentCounts)
+          .sort((a, b) => b[1] - a[1])[0][0] as 'positive' | 'negative' | 'neutral';
+
+        return {
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          count: data.count,
+          sentiment: dominantSentiment,
+          accountCount: data.accounts.size,
+        };
+      })
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }, [meetings]);
+
   if (meetings.length === 0) {
     return (
       <div className="salesperson-dashboard">
@@ -324,6 +372,28 @@ export default function SalespersonDashboard({ sellerName, meetings, onSelectMee
           ))}
         </div>
       </div>
+
+      {competitorStats.length > 0 && (
+        <div className="dashboard-section">
+          <h3>Competitive Landscape</h3>
+          <div className="competitor-stats">
+            {competitorStats.map(comp => (
+              <div key={comp.name} className={`competitor-stat-item sentiment-${comp.sentiment}`}>
+                <div className="competitor-stat-main">
+                  <span className="competitor-stat-name">{comp.name}</span>
+                  <span className={`competitor-stat-sentiment sentiment-${comp.sentiment}`}>
+                    {comp.sentiment}
+                  </span>
+                </div>
+                <div className="competitor-stat-meta">
+                  <span className="competitor-stat-count">{comp.count} mention{comp.count > 1 ? 's' : ''}</span>
+                  <span className="competitor-stat-accounts">{comp.accountCount} account{comp.accountCount > 1 ? 's' : ''}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="dashboard-section">
         <h3>Recent Meetings</h3>

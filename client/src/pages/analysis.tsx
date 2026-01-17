@@ -552,6 +552,56 @@ export default function AnalysisPage() {
                         </ul>
                       </div>
                     </div>
+
+                    {/* Competitor Intelligence */}
+                    {analysis.competitors && analysis.competitors.length > 0 && (
+                      <div className="competitors-section">
+                        <h4>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="8.5" cy="7" r="4"/>
+                            <path d="M20 8v6M23 11h-6"/>
+                          </svg>
+                          Competitor Intelligence
+                        </h4>
+                        <div className="competitor-list">
+                          {analysis.competitors.map((comp, i) => (
+                            <div key={i} className={`competitor-item sentiment-${comp.sentiment}`}>
+                              <div className="competitor-header">
+                                <span className="competitor-name">{comp.name}</span>
+                                <span className={`competitor-sentiment sentiment-${comp.sentiment}`}>
+                                  {comp.sentiment}
+                                </span>
+                              </div>
+                              <p className="competitor-context">{comp.context}</p>
+                              {comp.quote && comp.quote !== 'Enable AI for exact quotes' && (
+                                <blockquote className="competitor-quote">"{comp.quote}"</blockquote>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {analysis.competitorInsights && (
+                          <div className="competitor-insights">
+                            {analysis.competitorInsights.topThreat && (
+                              <div className="top-threat">
+                                <strong>Top Threat:</strong> {analysis.competitorInsights.topThreat}
+                              </div>
+                            )}
+                            {analysis.competitorInsights.positioning && analysis.competitorInsights.positioning.length > 0 && (
+                              <div className="positioning-tips">
+                                <strong>Counter-Positioning:</strong>
+                                <ul>
+                                  {analysis.competitorInsights.positioning.map((tip, i) => (
+                                    <li key={i}>{tip}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div>
                       <h4>Next steps</h4>
                       <ul>

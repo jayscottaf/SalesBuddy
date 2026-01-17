@@ -510,3 +510,144 @@ textarea {
     display: none;
   }
 }
+
+/* Competitor Intelligence Section */
+.competitors-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  border: 1px solid #fcd34d;
+}
+
+.competitors-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px 0;
+  color: #92400e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.competitors-section h4 svg {
+  color: #d97706;
+}
+
+.competitor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.competitor-item {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  border-left: 4px solid #94a3b8;
+}
+
+.competitor-item.sentiment-positive {
+  border-left-color: #22c55e;
+}
+
+.competitor-item.sentiment-negative {
+  border-left-color: #ef4444;
+}
+
+.competitor-item.sentiment-neutral {
+  border-left-color: #94a3b8;
+}
+
+.competitor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.competitor-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.competitor-sentiment {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: capitalize;
+}
+
+.competitor-sentiment.sentiment-positive {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.competitor-sentiment.sentiment-negative {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.competitor-sentiment.sentiment-neutral {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.competitor-context {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.competitor-quote {
+  margin: 0;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+  font-size: 12px;
+  font-style: italic;
+  color: #64748b;
+  border-left: 2px solid #cbd5e1;
+}
+
+.competitor-insights {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #fcd34d;
+}
+
+.top-threat {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #fef2f2;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 13px;
+}
+
+.top-threat strong {
+  color: #7f1d1d;
+}
+
+.positioning-tips {
+  font-size: 13px;
+  color: #92400e;
+}
+
+.positioning-tips strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.positioning-tips ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.positioning-tips li {
+  margin-bottom: 4px;
+  line-height: 1.5;
+}

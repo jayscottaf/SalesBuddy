@@ -66,6 +66,52 @@ export default function AccountAnalysis({ accountName, meetings, onSelectMeeting
     return Math.round(total / meetings.length);
   }, [meetings]);
 
+  // Aggregate competitor data across all meetings
+  const competitorStats = useMemo(() => {
+    const compMap = new Map<string, {
+      count: number;
+      sentiments: ('positive' | 'negative' | 'neutral')[];
+      latestContext: string;
+    }>();
+
+    sortedMeetings.forEach(m => {
+      m.competitors?.forEach(comp => {
+        const key = comp.name.toLowerCase();
+        const existing = compMap.get(key);
+        if (existing) {
+          existing.count++;
+          existing.sentiments.push(comp.sentiment);
+          existing.latestContext = comp.context;
+        } else {
+          compMap.set(key, {
+            count: 1,
+            sentiments: [comp.sentiment],
+            latestContext: comp.context,
+          });
+        }
+      });
+    });
+
+    return Array.from(compMap.entries())
+      .map(([name, data]) => {
+        // Calculate dominant sentiment
+        const sentimentCounts = data.sentiments.reduce((acc, s) => {
+          acc[s] = (acc[s] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        const dominantSentiment = Object.entries(sentimentCounts)
+          .sort((a, b) => b[1] - a[1])[0][0] as 'positive' | 'negative' | 'neutral';
+
+        return {
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          count: data.count,
+          sentiment: dominantSentiment,
+          context: data.latestContext,
+        };
+      })
+      .sort((a, b) => b.count - a.count);
+  }, [sortedMeetings]);
+
   return (
     <div className="account-analysis">
       <div className="account-header">
@@ -166,6 +212,28 @@ export default function AccountAnalysis({ accountName, meetings, onSelectMeeting
           ))}
         </div>
       </div>
+
+      {competitorStats.length > 0 && (
+        <div className="account-section">
+          <h3>Competitive Landscape</h3>
+          <div className="competitors-tracking">
+            {competitorStats.map(comp => (
+              <div key={comp.name} className={`competitor-track-item sentiment-${comp.sentiment}`}>
+                <div className="competitor-track-header">
+                  <span className="competitor-track-name">{comp.name}</span>
+                  <div className="competitor-track-meta">
+                    <span className={`competitor-track-sentiment sentiment-${comp.sentiment}`}>
+                      {comp.sentiment}
+                    </span>
+                    <span className="competitor-track-count">{comp.count}x</span>
+                  </div>
+                </div>
+                <p className="competitor-track-context">{comp.context}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="account-section">
         <h3>Latest Summary</h3>

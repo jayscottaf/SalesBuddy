@@ -549,3 +549,84 @@
     display: none;
   }
 }
+
+/* Competitive Landscape */
+.competitor-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.competitor-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #fffbeb;
+  border-radius: 10px;
+  border-left: 4px solid #fbbf24;
+}
+
+.competitor-stat-item.sentiment-positive {
+  background: #f0fdf4;
+  border-left-color: #22c55e;
+}
+
+.competitor-stat-item.sentiment-negative {
+  background: #fef2f2;
+  border-left-color: #ef4444;
+}
+
+.competitor-stat-item.sentiment-neutral {
+  background: #f8fafc;
+  border-left-color: #94a3b8;
+}
+
+.competitor-stat-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.competitor-stat-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.competitor-stat-sentiment {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.competitor-stat-sentiment.sentiment-positive {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.competitor-stat-sentiment.sentiment-negative {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.competitor-stat-sentiment.sentiment-neutral {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+.competitor-stat-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.competitor-stat-count,
+.competitor-stat-accounts {
+  background: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+}

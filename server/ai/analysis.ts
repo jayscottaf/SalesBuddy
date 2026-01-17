@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import type {
   CoachingMetrics,
+  CompetitorMention,
+  CompetitorInsights,
   SalesTranscriptAnalysisRequest,
   SalesTranscriptAnalysisResponse,
 } from '../../shared/schema';
@@ -232,6 +234,18 @@ Return JSON with this exact shape:
       "score": ${coaching.questionScore.score}
     },
     "observations": ["string", "..."]
+  },
+  "competitors": [
+    {
+      "name": "competitor company name",
+      "context": "brief description of why/how they were mentioned",
+      "sentiment": "positive|negative|neutral",
+      "quote": "exact quote from transcript mentioning competitor"
+    }
+  ],
+  "competitorInsights": {
+    "topThreat": "name of most threatening competitor or null if none",
+    "positioning": ["counter-positioning suggestion 1", "suggestion 2"]
   }
 }
 
@@ -240,6 +254,8 @@ Rules:
 - keep arrays 3-5 items when possible.
 - use plain text, no markdown.
 - be concise and actionable.
+- competitors: identify any competitor companies mentioned in the transcript (e.g., Salesforce, HubSpot, Gong, etc.)
+- if no competitors mentioned, return empty array for competitors and null for competitorInsights
 `;
 };
 
@@ -275,6 +291,29 @@ export const analyzeTranscriptWithAI = async (
     throw new Error('Invalid JSON from OpenAI: ' + raw.slice(0, 200));
   }
 
+  // Parse competitors
+  const competitors: CompetitorMention[] = Array.isArray(parsed.competitors)
+    ? parsed.competitors.map((c: any) => ({
+        name: String(c.name || ''),
+        context: String(c.context || ''),
+        sentiment: ['positive', 'negative', 'neutral'].includes(c.sentiment)
+          ? c.sentiment
+          : 'neutral',
+        quote: String(c.quote || ''),
+      })).filter((c: CompetitorMention) => c.name.length > 0)
+    : [];
+
+  // Parse competitor insights
+  const competitorInsights: CompetitorInsights | undefined =
+    parsed.competitorInsights && typeof parsed.competitorInsights === 'object'
+      ? {
+          topThreat: parsed.competitorInsights.topThreat || undefined,
+          positioning: Array.isArray(parsed.competitorInsights.positioning)
+            ? parsed.competitorInsights.positioning.map(String)
+            : [],
+        }
+      : undefined;
+
   return {
     meetingDate: request.meetingDate,
     accountName: request.accountName,
@@ -301,6 +340,8 @@ export const analyzeTranscriptWithAI = async (
           ? parsed.coaching.observations.map(String)
           : coaching.observations,
     },
+    competitors: competitors.length > 0 ? competitors : undefined,
+    competitorInsights: competitorInsights,
   };
 };
 
@@ -308,6 +349,16 @@ export const analyzeTranscriptFallback = (
   request: SalesTranscriptAnalysisRequest
 ): Omit<SalesTranscriptAnalysisResponse, 'id' | 'createdAt'> => {
   const coaching = computeCoachingMetrics(request.transcript, request.sellerName);
+
+  // Basic competitor detection for fallback mode
+  const competitorKeywords = [
+    'salesforce', 'hubspot', 'gong', 'chorus', 'outreach', 'salesloft',
+    'zoho', 'pipedrive', 'freshsales', 'close', 'copper', 'zendesk sell',
+    'microsoft dynamics', 'oracle', 'sap', 'competitor', 'alternative'
+  ];
+  const transcriptLower = request.transcript.toLowerCase();
+  const detectedCompetitors = competitorKeywords.filter(c => transcriptLower.includes(c));
+
   return {
     meetingDate: request.meetingDate,
     accountName: request.accountName,
@@ -338,6 +389,20 @@ export const analyzeTranscriptFallback = (
         'I wanted to confirm the decision timeline and who needs to be involved so we can move forward.',
     },
     coaching,
+    competitors: detectedCompetitors.length > 0
+      ? detectedCompetitors.map(name => ({
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          context: 'Mentioned in transcript (fallback detection)',
+          sentiment: 'neutral' as const,
+          quote: 'Enable AI for exact quotes',
+        }))
+      : undefined,
+    competitorInsights: detectedCompetitors.length > 0
+      ? {
+          topThreat: detectedCompetitors[0].charAt(0).toUpperCase() + detectedCompetitors[0].slice(1),
+          positioning: ['Add OpenAI key for detailed counter-positioning suggestions'],
+        }
+      : undefined,
   };
 };
 

@@ -29,6 +29,20 @@ export interface CoachingMetrics {
   observations: string[];
 }
 
+export type CompetitorSentiment = 'positive' | 'negative' | 'neutral';
+
+export interface CompetitorMention {
+  name: string;
+  context: string;
+  sentiment: CompetitorSentiment;
+  quote: string;
+}
+
+export interface CompetitorInsights {
+  topThreat?: string;
+  positioning: string[];
+}
+
 export interface SalesTranscriptAnalysisRequest {
   transcript: string;
   meetingDate?: string;
@@ -53,6 +67,8 @@ export interface SalesTranscriptAnalysisResponse {
   nextSteps: string[];
   followUp: FollowUp;
   coaching: CoachingMetrics;
+  competitors?: CompetitorMention[];
+  competitorInsights?: CompetitorInsights;
 }
 
 export interface SalesTranscriptAnalysisListItem {
