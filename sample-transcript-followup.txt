@@ -1,0 +1,130 @@
+Sales Meeting Transcript - High Peak Homebuyers
+Date: January 22, 2026
+Meeting Type: Technical Deep-Dive with CTO
+Duration: 55 minutes
+Attendees: Mike (Sales Rep), Sarah (VP Sales Ops), Tom (CTO), David (Salesforce Admin)
+
+---
+
+[0:00]
+Mike: Good afternoon everyone. Thanks for making time for this technical session. Sarah, Tom, and I see we have David joining us as well—great to have you here. Before we dive in, Tom, Sarah mentioned you had some specific areas you wanted to cover around security and integration. Want to kick us off with what's top of mind?
+
+Tom: Yes, thanks Mike. Look, I'll be direct—we've been burned before by vendors who promise seamless Salesforce integration and then it's six months of custom development. So I have a list. First, I need to understand your authentication model and data handling. Second, our Salesforce instance is heavily customized—we have about 40 custom objects and a lot of automation. Third, compliance. We're not regulated like fintech, but we do handle customer financial data and we take that seriously.
+
+Mike: Appreciate the directness, Tom. Let's work through each of those. On authentication—we use OAuth 2.0 exclusively for Salesforce connections. No stored credentials. The token is scoped to specific objects you approve, and by default, we request read-only access. David, you'd be able to see exactly what permissions we're requesting during the authorization flow.
+
+David: That's good. What about the data itself? Where does it live?
+
+Mike: Great question. We're SOC 2 Type II certified, and data is stored in AWS US regions—specifically us-east-1 and us-west-2 with automatic failover. For customers with specific requirements, we can do single-tenant deployment, though that's typically enterprise tier. All data is encrypted at rest and in transit. We also support data residency requirements if that becomes relevant.
+
+Tom: And GDPR? We have some European customers.
+
+Mike: Fully compliant. We have a DPA we can execute, data processing is documented, and we support right-to-deletion requests through our API and admin console. I can send you our security whitepaper and compliance certificates after this call.
+
+Sarah: Tom, does that cover the baseline security requirements?
+
+Tom: It's a good start. Let me ask about the integration depth. You said read-only by default—what if we need two-way sync? Our regional managers sometimes need to update forecasts directly in your system.
+
+Mike: Two-way sync is available. Here's how it works—we can write back to specific fields you designate. Most customers start with read-only for the first 30 days, validate the data quality, then selectively enable write-back. David, what fields would you anticipate needing write-back on?
+
+David: Probably our custom forecast override fields and maybe deal stage if your AI is making recommendations.
+
+Mike: That's exactly the common pattern. For the forecast override, we'd write to your field with a flag indicating it was a PipelineIQ suggestion versus a manual override. That way your reporting stays clean.
+
+Tom: What about our custom objects? We have a pretty complex data model—40-plus custom objects, relationships between them, formula fields pulling from multiple sources.
+
+Mike: Let me ask a clarifying question—of those 40 custom objects, how many are directly related to your opportunity and pipeline data?
+
+David: Honestly, maybe 12 to 15 are relevant to pipeline. The others are operational stuff—service tickets, customer success data, that kind of thing.
+
+Mike: Perfect. For the pilot, we'd map those 12 to 15 plus your standard opportunity and account objects. We have a pre-built connector that handles standard Salesforce schema automatically, and for custom objects, it's a configuration exercise—typically 2 to 4 hours with your team, not custom development. David, we'd need about 30 minutes of your time to walk through the object relationships.
+
+David: That's way less than I expected. Our last vendor took three weeks just to map our data model.
+
+Sarah: That's encouraging. Tom, what about the API limits? That was something you flagged.
+
+Tom: Right. We're already using about 60% of our Salesforce API allocation with our current integrations. What kind of API footprint does your system have?
+
+Mike: We're designed to be API-efficient. We use bulk API for initial sync and incremental sync for ongoing updates—typically once per hour for pipeline data, though that's configurable. For a company your size, you're probably looking at 5 to 8 percent of your daily API allocation. We can also do webhook-based triggers if you want real-time updates without polling.
+
+Tom: That's acceptable. What happens if there's an API failure or Salesforce is down?
+
+Mike: We queue all operations with automatic retry. If Salesforce is unavailable, we'll retry with exponential backoff for up to 24 hours. You'd get an alert in our admin console after 3 failed attempts. No data loss.
+
+Sarah: Mike, can you show us what the Midwest team would actually see? Jennifer's been asking what the day-to-day experience looks like for her reps.
+
+Mike: Absolutely. Let me share my screen. [shares screen] This is a demo instance configured similarly to what we discussed—multi-region setup with roll-up dashboards. So here's the regional manager view Jennifer would see. Real-time pipeline by rep, this confidence score is our AI's assessment of deal health based on activity patterns, and here's the forecast comparison—their submitted number versus the AI prediction.
+
+Sarah: That discrepancy flagging—that's what would catch the double-counting issue we talked about?
+
+Mike: Exactly. See this alert here? It detected that two reps in different territories have the same account in their pipeline. In your case last quarter, that was the $1.2 million double-count. This would have flagged it immediately.
+
+Tom: How does the AI make that determination? Is it just matching account names?
+
+Mike: It's more sophisticated than that. We look at account name similarity, domain matching, contact overlap, and even activity patterns. Two different account records being worked by different reps but with overlapping contacts would still get flagged. We show the confidence level and the specific match reasons so your team can validate.
+
+David: Can we tune that? We have some legitimate cases where the same account has separate divisions we sell to independently.
+
+Mike: Yes, you can create exclusion rules. If you have a parent-child account structure in Salesforce, we respect that. You can also manually mark specific matches as "not a duplicate" and the system learns from that.
+
+Sarah: Tom, I know you wanted to understand the forecast AI specifically. Mike, can you walk us through how it generates predictions?
+
+Mike: Sure. The forecast model uses three main inputs: historical win rate data by rep, segment, and deal size; current deal activity signals like email frequency, meeting cadence, and stakeholder engagement; and stage velocity—how long deals typically spend in each stage versus how long this specific deal has been there. The model updates weekly by default, though we can do daily for high-velocity sales cycles.
+
+Tom: Is this a black box or can we see why it's making a prediction?
+
+Mike: Full transparency. Click on any deal's confidence score and you get this explainability panel—these are the positive signals, these are the risk factors, and here's the historical comparison. Your managers can use this in deal reviews.
+
+Sarah: That's exactly what we need. Our current forecast process is basically gut feel and spreadsheet aggregation. This gives us something to actually discuss in pipeline reviews.
+
+Tom: What about SSO? We're on Okta.
+
+Mike: Native Okta integration. SAML 2.0. Takes about 15 minutes to configure. We can also sync user provisioning through SCIM if you want automatic account creation and deactivation.
+
+Tom: Last question from me—what's your uptime SLA and what happens if your system goes down?
+
+Mike: 99.9% uptime SLA, measured monthly. We've actually exceeded that—99.95% over the last 12 months. If we're down, your Salesforce data is unaffected since we're read-only. Your team just loses access to our dashboards and AI insights temporarily. We have a public status page and proactive notifications for any incidents.
+
+Sarah: Tom, David—does this cover your technical requirements?
+
+Tom: I'm satisfied from a security and architecture standpoint. David?
+
+David: Yeah, the API efficiency and the custom object handling sound reasonable. I'd want to validate during the pilot, but I don't see any blockers.
+
+Tom: Sarah, from my side, I'm comfortable moving forward with a pilot. I'd want to be included in the pilot review at the midpoint to validate the data accuracy, but I don't need to be involved day-to-day.
+
+Sarah: That's great news. Mike, let's talk about the pilot logistics. Jennifer's ready on her end. What do you need from us to get started?
+
+Mike: A few things. First, David, I'll need about 30 minutes to walk through your Salesforce object model and identify the custom fields we need to map. Second, we need to define the pilot scope—I'd suggest Jennifer's Midwest region only, which is what, 8 reps?
+
+Sarah: 8 reps plus Jennifer, so 9 users total.
+
+Mike: Perfect. Third, we need baseline metrics. Sarah, you mentioned last time that reconciliation takes about 2 days per month. Can we document that more specifically—hours by person, steps involved? Same with forecast accuracy—what was the variance in Q4?
+
+Sarah: I can pull that together. We were off by about 12% on the Q4 forecast for Midwest specifically.
+
+Mike: Good, that gives us something concrete to measure against. My proposal is a 2-week pilot starting February 3rd. First week is setup, data validation, and training. Second week is active use—Jennifer's team uses PipelineIQ for their weekly pipeline reviews and we measure adoption and accuracy. We regroup on February 14th to review results.
+
+Sarah: That timeline works. It gives us results before the CFO meeting we discussed.
+
+Mike: Exactly. On that note—should we schedule the Lisa meeting now for the week of February 17th? That gives us pilot data to present.
+
+Sarah: Let me check her calendar... She has availability on the 18th or 19th. Let's tentatively hold the 18th and I'll confirm.
+
+Mike: Done. I'll send a calendar invite as a placeholder.
+
+Tom: One more thing—can you send over the security documentation we discussed? SOC 2 report, the DPA, and that technical architecture overview. I want to have our InfoSec team review before the pilot starts.
+
+Mike: I'll have that over to you by end of day tomorrow. I'll also include our penetration test results from last quarter—we do third-party pen testing annually.
+
+Sarah: This has been really productive. Tom, David—anything else before we wrap?
+
+Tom: No, I think we're good. This is the most prepared vendor technical session we've had. Nice job, Mike.
+
+Mike: Appreciate that, Tom. I know security isn't something you compromise on. Sarah, quick recap of next steps: I'll send security docs to Tom tomorrow, schedule the Salesforce mapping session with David for early next week, confirm the pilot start date of February 3rd with Jennifer, and hold February 18th for the CFO business case meeting. Does that capture everything?
+
+Sarah: That's it. Let's make this happen.
+
+Mike: Thanks everyone. Talk soon.
+
+[End of meeting - 55 minutes]
