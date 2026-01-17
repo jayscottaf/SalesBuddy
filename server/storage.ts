@@ -1,15 +1,22 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, or, and } from "drizzle-orm";
 import { db } from "./db";
 import {
   analyses,
+  teamMembers,
   type SalesTranscriptAnalysisListItem,
   type SalesTranscriptAnalysisResponse,
 } from "../shared/schema";
 
 export const analysisStore = {
-  save: async (analysis: SalesTranscriptAnalysisResponse): Promise<SalesTranscriptAnalysisResponse> => {
+  save: async (
+    analysis: SalesTranscriptAnalysisResponse,
+    userId?: string,
+    teamId?: string
+  ): Promise<SalesTranscriptAnalysisResponse> => {
     await db.insert(analyses).values({
       id: analysis.id,
+      userId,
+      teamId,
       meetingDate: analysis.meetingDate,
       accountName: analysis.accountName,
       participants: analysis.participants,
@@ -28,8 +35,12 @@ export const analysisStore = {
     return analysis;
   },
 
-  list: async (limit: number = 20): Promise<SalesTranscriptAnalysisListItem[]> => {
-    const results = await db
+  list: async (
+    limit: number = 20,
+    userId?: string,
+    teamId?: string
+  ): Promise<SalesTranscriptAnalysisListItem[]> => {
+    let query = db
       .select({
         id: analyses.id,
         createdAt: analyses.createdAt,
@@ -38,7 +49,31 @@ export const analysisStore = {
         summary: analyses.summary,
         intent: analyses.intent,
       })
-      .from(analyses)
+      .from(analyses);
+
+    if (teamId) {
+      query = query.where(eq(analyses.teamId, teamId)) as typeof query;
+    } else if (userId) {
+      const userTeams = await db
+        .select({ teamId: teamMembers.teamId })
+        .from(teamMembers)
+        .where(eq(teamMembers.userId, userId));
+
+      const teamIds = userTeams.map((t) => t.teamId);
+
+      if (teamIds.length > 0) {
+        query = query.where(
+          or(
+            eq(analyses.userId, userId),
+            ...teamIds.map((tid) => eq(analyses.teamId, tid))
+          )
+        ) as typeof query;
+      } else {
+        query = query.where(eq(analyses.userId, userId)) as typeof query;
+      }
+    }
+
+    const results = await query
       .orderBy(desc(analyses.createdAt))
       .limit(limit);
 
@@ -52,13 +87,33 @@ export const analysisStore = {
     }));
   },
 
-  get: async (id: string): Promise<SalesTranscriptAnalysisResponse | undefined> => {
+  get: async (
+    id: string,
+    userId?: string
+  ): Promise<SalesTranscriptAnalysisResponse | undefined> => {
     const [result] = await db
       .select()
       .from(analyses)
       .where(eq(analyses.id, id));
 
     if (!result) return undefined;
+
+    if (userId && result.userId !== userId) {
+      if (result.teamId) {
+        const [membership] = await db
+          .select()
+          .from(teamMembers)
+          .where(
+            and(
+              eq(teamMembers.teamId, result.teamId),
+              eq(teamMembers.userId, userId)
+            )
+          );
+        if (!membership) return undefined;
+      } else {
+        return undefined;
+      }
+    }
 
     return {
       id: result.id,

@@ -26,7 +26,23 @@ Uses PostgreSQL with Drizzle ORM. The `analyses` table stores all transcript ana
 - `DATABASE_URL` - PostgreSQL connection string (automatically set by Replit)
 - `OPENAI_API_KEY` - Optional. If not set, the app uses fallback analysis.
 
+## Authentication
+Uses Replit Auth for user login. In development mode (NODE_ENV !== 'production'), authentication is bypassed with a dev user for easier testing.
+
+## Teams & Collaboration
+- Teams table allows creating team workspaces
+- Team members can share analyses within their team
+- Analyses can be personal (userId only) or team-shared (teamId)
+- All team-scoped endpoints verify membership before access
+
 ## Recent Changes
+- 2026-01-17: Added team collaboration with membership verification
+  - Created teams and teamMembers tables
+  - Analyses can be scoped to teams
+  - Added security checks for team membership on all team endpoints
+- 2026-01-17: Added Replit Auth integration
+  - Users and sessions tables for authentication
+  - Development mode bypass for easier testing
 - 2026-01-17: Added persistent database storage
   - Created PostgreSQL database with Drizzle ORM
   - All transcript analyses now persist to the database

@@ -1,4 +1,7 @@
 import { pgTable, varchar, text, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+
+export * from "./models/auth";
 
 export type IntentBucket = 'BuyNow' | 'BuySoon' | 'Later' | 'NoFit';
 
@@ -82,9 +85,26 @@ export interface SalesTranscriptAnalysisListItem {
   intent: IntentScore;
 }
 
+export const teams = pgTable("teams", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  ownerId: varchar("owner_id", { length: 255 }).notNull(),
+});
+
+export const teamMembers = pgTable("team_members", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  teamId: varchar("team_id", { length: 36 }).notNull(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  role: varchar("role", { length: 50 }).notNull().default("member"),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+});
+
 export const analyses = pgTable("analyses", {
   id: varchar("id", { length: 36 }).primaryKey(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  userId: varchar("user_id", { length: 255 }),
+  teamId: varchar("team_id", { length: 36 }),
   meetingDate: varchar("meeting_date", { length: 50 }),
   accountName: varchar("account_name", { length: 255 }),
   participants: jsonb("participants").$type<string[]>(),
@@ -101,5 +121,9 @@ export const analyses = pgTable("analyses", {
   competitorInsights: jsonb("competitor_insights").$type<CompetitorInsights>(),
 });
 
+export type Team = typeof teams.$inferSelect;
+export type InsertTeam = typeof teams.$inferInsert;
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type InsertTeamMember = typeof teamMembers.$inferInsert;
 export type Analysis = typeof analyses.$inferSelect;
 export type InsertAnalysis = typeof analyses.$inferInsert;
