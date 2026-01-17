@@ -45,18 +45,19 @@ app.post('/api/sales/analysis', async (req, res) => {
     createdAt: new Date().toISOString(),
     ...analysisPayload,
   };
-  analysisStore.save(analysis);
+  await analysisStore.save(analysis);
   return res.json(analysis);
 });
 
-app.get('/api/sales/analysis', (req, res) => {
+app.get('/api/sales/analysis', async (req, res) => {
   const limitRaw = req.query.limit as string | undefined;
   const limit = limitRaw ? Math.min(Number(limitRaw), 50) : 20;
-  res.json(analysisStore.list(limit));
+  const results = await analysisStore.list(limit);
+  res.json(results);
 });
 
-app.get('/api/sales/analysis/:id', (req, res) => {
-  const analysis = analysisStore.get(req.params.id);
+app.get('/api/sales/analysis/:id', async (req, res) => {
+  const analysis = await analysisStore.get(req.params.id);
   if (!analysis) {
     return res.status(404).json({ message: 'Analysis not found.' });
   }

@@ -1,3 +1,5 @@
+import { pgTable, varchar, text, timestamp, jsonb } from "drizzle-orm/pg-core";
+
 export type IntentBucket = 'BuyNow' | 'BuySoon' | 'Later' | 'NoFit';
 
 export interface IntentScore {
@@ -79,3 +81,25 @@ export interface SalesTranscriptAnalysisListItem {
   summary: string;
   intent: IntentScore;
 }
+
+export const analyses = pgTable("analyses", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  meetingDate: varchar("meeting_date", { length: 50 }),
+  accountName: varchar("account_name", { length: 255 }),
+  participants: jsonb("participants").$type<string[]>(),
+  sellerName: varchar("seller_name", { length: 255 }),
+  notes: text("notes"),
+  summary: text("summary").notNull(),
+  intent: jsonb("intent").$type<IntentScore>().notNull(),
+  signals: jsonb("signals").$type<string[]>().notNull(),
+  blockers: jsonb("blockers").$type<string[]>().notNull(),
+  nextSteps: jsonb("next_steps").$type<string[]>().notNull(),
+  followUp: jsonb("follow_up").$type<FollowUp>().notNull(),
+  coaching: jsonb("coaching").$type<CoachingMetrics>().notNull(),
+  competitors: jsonb("competitors").$type<CompetitorMention[]>(),
+  competitorInsights: jsonb("competitor_insights").$type<CompetitorInsights>(),
+});
+
+export type Analysis = typeof analyses.$inferSelect;
+export type InsertAnalysis = typeof analyses.$inferInsert;
