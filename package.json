@@ -1,18 +1,23 @@
 {
   "name": "salesbuddy",
   "version": "1.0.0",
-  "description": "",
+  "description": "Sales meeting transcript analysis tool with AI-powered coaching",
   "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "build": "npm run build --prefix client && npm run build --prefix server",
-    "start": "npm run start --prefix server"
+    "start": "npm run start --prefix server",
+    "vercel-build": "cd client && npm install && npm run build"
   },
-  "keywords": [],
+  "keywords": ["sales", "ai", "coaching", "transcript-analysis"],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@vercel/node": "^3.0.0",
     "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "openai": "^4.0.0"
   }
 }
