@@ -7,9 +7,11 @@ import cors from 'cors';
 import crypto from 'crypto';
 import { analysisStore } from './storage';
 import { teamStore } from './teamStorage';
-import type {
-  SalesTranscriptAnalysisRequest,
-  SalesTranscriptAnalysisResponse,
+import { db } from './db';
+import {
+  feedback,
+  type SalesTranscriptAnalysisRequest,
+  type SalesTranscriptAnalysisResponse,
 } from '../shared/schema';
 import {
   analyzeTranscriptFallback,
@@ -217,6 +219,46 @@ async function main() {
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
+  });
+
+  // Feedback endpoint - no auth required for anonymous feedback
+  app.post('/api/feedback', optionalAuth, async (req: any, res) => {
+    try {
+      const { type, message, email, page } = req.body as {
+        type: string;
+        message: string;
+        email?: string;
+        page?: string;
+      };
+
+      if (!type || !message) {
+        return res.status(400).json({ message: 'Type and message are required.' });
+      }
+
+      const validTypes = ['bug', 'feature', 'general'];
+      if (!validTypes.includes(type)) {
+        return res.status(400).json({ message: 'Invalid feedback type.' });
+      }
+
+      const id = crypto.randomUUID();
+      const userId = req.user?.claims?.sub || null;
+      const userAgent = req.headers['user-agent'] || null;
+
+      await db.insert(feedback).values({
+        id,
+        type,
+        message,
+        email: email || null,
+        userId,
+        page: page || null,
+        userAgent,
+      });
+
+      return res.json({ success: true, id });
+    } catch (error) {
+      console.error('Submit feedback failed:', error);
+      return res.status(500).json({ message: 'Failed to submit feedback.' });
+    }
   });
 
   app.listen(port, () => {

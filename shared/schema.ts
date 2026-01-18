@@ -120,9 +120,22 @@ export const analyses = pgTable("analyses", {
   competitorInsights: jsonb("competitor_insights").$type<CompetitorInsights>(),
 });
 
+export const feedback = pgTable("feedback", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // 'bug' | 'feature' | 'general'
+  message: text("message").notNull(),
+  email: varchar("email", { length: 255 }),
+  userId: varchar("user_id", { length: 255 }),
+  page: varchar("page", { length: 255 }),
+  userAgent: text("user_agent"),
+});
+
 export type Team = typeof teams.$inferSelect;
 export type InsertTeam = typeof teams.$inferInsert;
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertTeamMember = typeof teamMembers.$inferInsert;
 export type Analysis = typeof analyses.$inferSelect;
 export type InsertAnalysis = typeof analyses.$inferInsert;
+export type Feedback = typeof feedback.$inferSelect;
+export type InsertFeedback = typeof feedback.$inferInsert;
