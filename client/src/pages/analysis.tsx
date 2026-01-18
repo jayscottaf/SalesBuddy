@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import type {
   SalesTranscriptAnalysisRequest,
   SalesTranscriptAnalysisResponse,
+  Team,
 } from '@shared/schema';
 import DraftEditor from '../components/DraftEditor';
 import AccountAnalysis from '../components/AccountAnalysis';
 import SalespersonDashboard from '../components/SalespersonDashboard';
+import TeamManagement from '../components/TeamManagement';
 import './analysis.css';
 
 const parseParticipants = (raw: string) =>
@@ -16,7 +18,7 @@ const parseParticipants = (raw: string) =>
 
 const STORAGE_KEY = 'salesbuddy_analyses';
 
-type ViewTab = 'meeting' | 'accounts' | 'salesperson';
+type ViewTab = 'meeting' | 'accounts' | 'salesperson' | 'teams';
 
 const loadFromLocalStorage = (): Map<string, SalesTranscriptAnalysisResponse> => {
   try {
@@ -61,6 +63,8 @@ export default function AnalysisPage() {
   const [selectedAccountName, setSelectedAccountName] = useState<string | null>(null);
   const [selectedSellerName, setSelectedSellerName] = useState<string | null>(null);
   const [sidebarExpanded, setSidebarExpanded] = useState<Record<string, boolean>>({});
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [currentTeamId, setCurrentTeamId] = useState<string | null>(null);
 
   // Group analyses by account
   const accountGroups = useMemo(() => {
@@ -106,6 +110,47 @@ export default function AnalysisPage() {
     saveToLocalStorage(storedAnalyses);
   }, [storedAnalyses]);
 
+  // Fetch teams on mount
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const response = await fetch('/api/teams');
+        if (response.ok) {
+          const data = await response.json();
+          setTeams(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch teams:', err);
+      }
+    };
+    fetchTeams();
+  }, []);
+
+  const handleCreateTeam = async (name: string): Promise<Team> => {
+    const response = await fetch('/api/teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || 'Failed to create team');
+    }
+    return response.json();
+  };
+
+  const refreshTeams = async () => {
+    try {
+      const response = await fetch('/api/teams');
+      if (response.ok) {
+        const data = await response.json();
+        setTeams(data);
+      }
+    } catch (err) {
+      console.error('Failed to refresh teams:', err);
+    }
+  };
+
   const addAnalysis = (newAnalysis: SalesTranscriptAnalysisResponse) => {
     setStoredAnalyses(prev => {
       const updated = new Map(prev);
@@ -143,13 +188,14 @@ export default function AnalysisPage() {
     setError(null);
     try {
       const participantsList = parseParticipants(participants);
-      const payload: SalesTranscriptAnalysisRequest = {
+      const payload: SalesTranscriptAnalysisRequest & { teamId?: string } = {
         transcript,
         meetingDate: meetingDate || undefined,
         accountName: accountName || undefined,
         participants: participantsList.length ? participantsList : undefined,
         sellerName: sellerName || undefined,
         notes: notes || undefined,
+        teamId: currentTeamId || undefined,
       };
       const response = await fetch('/api/sales/analysis', {
         method: 'POST',
@@ -282,8 +328,30 @@ export default function AnalysisPage() {
             </svg>
             Salesperson
           </button>
+          <button
+            className={`tab-btn ${activeTab === 'teams' ? 'active' : ''}`}
+            onClick={() => setActiveTab('teams')}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Teams
+          </button>
         </div>
         <div className="topbar__actions">
+          <select
+            className="team-selector"
+            value={currentTeamId || ''}
+            onChange={(e) => setCurrentTeamId(e.target.value || null)}
+          >
+            <option value="">Personal</option>
+            {teams.map((t) => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
           <button
             className="button secondary"
             type="button"
@@ -737,6 +805,17 @@ export default function AnalysisPage() {
                   onSelectMeeting={loadAnalysis}
                 />
               )}
+            </div>
+          )}
+
+          {/* Teams View */}
+          {activeTab === 'teams' && (
+            <div className="card">
+              <TeamManagement
+                teams={teams}
+                onCreateTeam={handleCreateTeam}
+                onRefreshTeams={refreshTeams}
+              />
             </div>
           )}
         </div>
