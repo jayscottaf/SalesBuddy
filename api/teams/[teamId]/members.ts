@@ -1,8 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'crypto';
 import { getDb } from '../../_lib/db';
+import { getAuthenticatedUser } from '../../_lib/auth';
 import { teamMembers, users } from '../../../shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -25,6 +26,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(503).json({ message: 'Database not configured.' });
   }
 
+  // Get authenticated user from session
+  const authUser = await getAuthenticatedUser(req);
+  if (!authUser) {
+    return res.status(401).json({ message: 'Unauthorized. Please log in.' });
+  }
+
+  // Verify user is a member of the team
+  const [membership] = await db
+    .select()
+    .from(teamMembers)
+    .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, authUser.id)));
+
+  if (!membership) {
+    return res.status(403).json({ message: 'You are not a member of this team.' });
+  }
+
   // GET /api/teams/[teamId]/members - list team members
   if (req.method === 'GET') {
     try {
@@ -43,6 +60,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // POST /api/teams/[teamId]/members - add team member
   if (req.method === 'POST') {
     try {
+      // Only owners can add members
+      if (membership.role !== 'owner') {
+        return res.status(403).json({ message: 'Only team owners can add members.' });
+      }
+
       const { email, role } = req.body as { email: string; role?: string };
 
       if (!email) {

@@ -20,6 +20,7 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@types/cookie": "^0.6.0",
     "@vercel/node": "^3.0.0",
     "concurrently": "^9.2.1"
   },
@@ -30,6 +31,7 @@
     "@types/passport": "^1.0.17",
     "@types/pg": "^8.16.0",
     "connect-pg-simple": "^10.0.0",
+    "cookie": "^1.1.1",
     "drizzle-kit": "^0.31.8",
     "drizzle-orm": "^0.45.1",
     "express-session": "^1.18.2",

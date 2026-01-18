@@ -8,6 +8,7 @@ import DraftEditor from '../components/DraftEditor';
 import AccountAnalysis from '../components/AccountAnalysis';
 import SalespersonDashboard from '../components/SalespersonDashboard';
 import TeamManagement from '../components/TeamManagement';
+import AdminFeedback from '../components/AdminFeedback';
 import './analysis.css';
 
 const parseParticipants = (raw: string) =>
@@ -18,7 +19,7 @@ const parseParticipants = (raw: string) =>
 
 const STORAGE_KEY = 'salesbuddy_analyses';
 
-type ViewTab = 'meeting' | 'accounts' | 'salesperson' | 'teams';
+type ViewTab = 'meeting' | 'accounts' | 'salesperson' | 'teams' | 'admin';
 
 const loadFromLocalStorage = (): Map<string, SalesTranscriptAnalysisResponse> => {
   try {
@@ -344,6 +345,16 @@ export default function AnalysisPage() {
               <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
             Teams
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
+            onClick={() => setActiveTab('admin')}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            Admin
           </button>
         </div>
         <div className="topbar__actions">
@@ -821,6 +832,13 @@ export default function AnalysisPage() {
                 onCreateTeam={handleCreateTeam}
                 onRefreshTeams={refreshTeams}
               />
+            </div>
+          )}
+
+          {/* Admin View */}
+          {activeTab === 'admin' && (
+            <div className="card">
+              <AdminFeedback />
             </div>
           )}
         </div>

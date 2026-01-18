@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'crypto';
 import { getDb } from '../_lib/db';
+import { getAuthenticatedUser } from '../_lib/auth';
 import { teams, teamMembers } from '../../shared/schema';
 import { eq, or } from 'drizzle-orm';
 
@@ -23,14 +24,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.json([]);
       }
 
-      // For now, return all teams (no auth in serverless)
-      // In production, you'd verify the user from a session/token
-      const DEV_USER_ID = 'dev-user-id';
+      // Get authenticated user from session
+      const user = await getAuthenticatedUser(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized. Please log in.' });
+      }
 
       const memberTeamIds = await db
         .select({ teamId: teamMembers.teamId })
         .from(teamMembers)
-        .where(eq(teamMembers.userId, DEV_USER_ID));
+        .where(eq(teamMembers.userId, user.id));
 
       if (memberTeamIds.length === 0) {
         return res.json([]);
@@ -56,30 +59,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(503).json({ message: 'Database not configured. Teams feature unavailable.' });
       }
 
+      // Get authenticated user from session
+      const user = await getAuthenticatedUser(req);
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized. Please log in.' });
+      }
+
       const { name } = req.body as { name: string };
       if (!name || typeof name !== 'string') {
         return res.status(400).json({ message: 'Team name is required.' });
       }
 
-      const DEV_USER_ID = 'dev-user-id';
       const id = crypto.randomUUID();
 
       const [team] = await db
         .insert(teams)
-        .values({ id, name, ownerId: DEV_USER_ID })
+        .values({ id, name, ownerId: user.id })
         .returning();
 
       await db.insert(teamMembers).values({
         id: crypto.randomUUID(),
         teamId: id,
-        userId: DEV_USER_ID,
+        userId: user.id,
         role: 'owner',
       });
 
       return res.json(team);
     } catch (error) {
       console.error('Create team failed:', error);
-      return res.status(500).json({ message: 'Failed to create team. Database may not be configured.' });
+      return res.status(500).json({ message: 'Failed to create team.' });
     }
   }
 
