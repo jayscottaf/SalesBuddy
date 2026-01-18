@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'crypto';
+import { getDb } from './_lib/db';
+import { feedback } from '../shared/schema';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -31,8 +33,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ message: 'Invalid feedback type.' });
     }
 
+    const db = getDb();
+
     // Check if database is configured
-    if (!process.env.DATABASE_URL) {
+    if (!db) {
       // Log feedback to console if no database
       console.log('FEEDBACK RECEIVED:', {
         type,
@@ -45,9 +49,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Save to database
-    const { db } = await import('../server/db');
-    const { feedback } = await import('../shared/schema');
-
     const id = crypto.randomUUID();
     const userAgent = req.headers['user-agent'] || null;
 

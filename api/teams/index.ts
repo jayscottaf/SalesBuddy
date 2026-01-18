@@ -1,9 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'crypto';
-
-// Note: Teams functionality requires database setup.
-// For now, return empty array to prevent errors.
-// Full implementation requires DATABASE_URL to be configured in Vercel.
+import { getDb } from '../_lib/db';
+import { teams, teamMembers } from '../../shared/schema';
+import { eq, or } from 'drizzle-orm';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,19 +13,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
+  const db = getDb();
+
   // GET /api/teams - list teams
   if (req.method === 'GET') {
     try {
       // Check if database is configured
-      if (!process.env.DATABASE_URL) {
-        // Return empty array if no database - teams feature not available
+      if (!db) {
         return res.json([]);
       }
-
-      // Dynamic import to avoid errors when DATABASE_URL is not set
-      const { db } = await import('../../server/db');
-      const { teams, teamMembers } = await import('../../shared/schema');
-      const { eq } = await import('drizzle-orm');
 
       // For now, return all teams (no auth in serverless)
       // In production, you'd verify the user from a session/token
@@ -41,7 +36,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.json([]);
       }
 
-      const { or } = await import('drizzle-orm');
       const teamIds = memberTeamIds.map((m) => m.teamId);
       const result = await db
         .select()
@@ -58,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // POST /api/teams - create team
   if (req.method === 'POST') {
     try {
-      if (!process.env.DATABASE_URL) {
+      if (!db) {
         return res.status(503).json({ message: 'Database not configured. Teams feature unavailable.' });
       }
 
@@ -66,9 +60,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!name || typeof name !== 'string') {
         return res.status(400).json({ message: 'Team name is required.' });
       }
-
-      const { db } = await import('../../server/db');
-      const { teams, teamMembers } = await import('../../shared/schema');
 
       const DEV_USER_ID = 'dev-user-id';
       const id = crypto.randomUUID();
