@@ -36,6 +36,11 @@ Uses Replit Auth for user login. In development mode (NODE_ENV !== 'production')
 - All team-scoped endpoints verify membership before access
 
 ## Recent Changes
+- 2026-01-18: Fixed Vercel deployment build errors
+  - Fixed IntentBucket type assertions in AI analysis
+  - Updated TypeScript configuration for proper path resolution
+  - Simplified Vercel build to client-only (skips server compilation)
+  - Auth disabled on Vercel (anonymous access), enabled on Replit
 - 2026-01-17: Added team collaboration with membership verification
   - Created teams and teamMembers tables
   - Analyses can be scoped to teams
