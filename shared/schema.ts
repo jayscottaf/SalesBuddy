@@ -1,5 +1,4 @@
 import { pgTable, varchar, text, timestamp, jsonb } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
 
 export * from "./models/auth";
 
