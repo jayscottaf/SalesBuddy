@@ -117,7 +117,12 @@ export default function AnalysisPage() {
         const response = await fetch('/api/teams');
         if (response.ok) {
           const data = await response.json();
-          setTeams(data);
+          if (Array.isArray(data)) {
+            setTeams(data);
+          }
+        } else {
+          // API returned error, teams feature may not be available
+          console.warn('Teams API returned error, feature may not be configured');
         }
       } catch (err) {
         console.error('Failed to fetch teams:', err);

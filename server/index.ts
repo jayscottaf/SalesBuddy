@@ -153,46 +153,66 @@ async function main() {
   });
 
   app.post('/api/teams', requireAuth, async (req: any, res) => {
-    const userId = req.user?.claims?.sub;
-    const { name } = req.body as { name: string };
-    if (!name || typeof name !== 'string') {
-      return res.status(400).json({ message: 'Team name is required.' });
+    try {
+      const userId = req.user?.claims?.sub;
+      const { name } = req.body as { name: string };
+      if (!name || typeof name !== 'string') {
+        return res.status(400).json({ message: 'Team name is required.' });
+      }
+      const team = await teamStore.create(name, userId);
+      return res.json(team);
+    } catch (error) {
+      console.error('Create team failed:', error);
+      return res.status(500).json({ message: 'Failed to create team. Database may not be configured.' });
     }
-    const team = await teamStore.create(name, userId);
-    return res.json(team);
   });
 
   app.get('/api/teams', requireAuth, async (req: any, res) => {
-    const userId = req.user?.claims?.sub;
-    const teams = await teamStore.listForUser(userId);
-    res.json(teams);
+    try {
+      const userId = req.user?.claims?.sub;
+      const teams = await teamStore.listForUser(userId);
+      res.json(teams);
+    } catch (error) {
+      console.error('List teams failed:', error);
+      return res.status(500).json({ message: 'Failed to fetch teams. Database may not be configured.' });
+    }
   });
 
   app.post('/api/teams/:teamId/members', requireAuth, async (req: any, res) => {
-    const userId = req.user?.claims?.sub;
-    const { teamId } = req.params;
-    const { email, role } = req.body as { email: string; role?: string };
-    
-    const team = await teamStore.get(teamId);
-    if (!team || team.ownerId !== userId) {
-      return res.status(403).json({ message: 'Not authorized to add members.' });
+    try {
+      const userId = req.user?.claims?.sub;
+      const { teamId } = req.params;
+      const { email, role } = req.body as { email: string; role?: string };
+
+      const team = await teamStore.get(teamId);
+      if (!team || team.ownerId !== userId) {
+        return res.status(403).json({ message: 'Not authorized to add members.' });
+      }
+
+      const member = await teamStore.addMember(teamId, email, role || 'member');
+      return res.json(member);
+    } catch (error) {
+      console.error('Add team member failed:', error);
+      return res.status(500).json({ message: 'Failed to add team member.' });
     }
-    
-    const member = await teamStore.addMember(teamId, email, role || 'member');
-    return res.json(member);
   });
 
   app.get('/api/teams/:teamId/members', requireAuth, async (req: any, res) => {
-    const userId = req.user?.claims?.sub;
-    const { teamId } = req.params;
-    
-    const isMember = await teamStore.isMember(teamId, userId);
-    if (!isMember) {
-      return res.status(403).json({ message: 'Not a member of this team.' });
+    try {
+      const userId = req.user?.claims?.sub;
+      const { teamId } = req.params;
+
+      const isMember = await teamStore.isMember(teamId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not a member of this team.' });
+      }
+
+      const members = await teamStore.getMembers(teamId);
+      res.json(members);
+    } catch (error) {
+      console.error('Get team members failed:', error);
+      return res.status(500).json({ message: 'Failed to fetch team members.' });
     }
-    
-    const members = await teamStore.getMembers(teamId);
-    res.json(members);
   });
 
   app.get('/api/health', (_req, res) => {
