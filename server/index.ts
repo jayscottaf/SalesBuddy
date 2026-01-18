@@ -19,28 +19,37 @@ import {
   improveContent,
   getCoachingAdvice,
 } from './ai/analysis';
-import { setupAuth, registerAuthRoutes, isAuthenticated } from './replit_integrations/auth';
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 3001;
 
+const isReplit = !!process.env.REPL_ID;
+const isVercel = !!process.env.VERCEL;
 const isDev = process.env.NODE_ENV !== 'production';
 const DEV_USER_ID = 'dev-user-id';
+const VERCEL_USER_ID = 'vercel-anonymous-user';
 
 const optionalAuth: express.RequestHandler = (req, res, next) => {
-  if (isDev && !req.isAuthenticated?.()) {
+  if (isVercel) {
+    (req as any).user = { claims: { sub: VERCEL_USER_ID } };
+  } else if (isDev && !req.isAuthenticated?.()) {
     (req as any).user = { claims: { sub: DEV_USER_ID } };
   }
   next();
 };
 
 const requireAuth: express.RequestHandler = (req, res, next) => {
+  if (isVercel) {
+    (req as any).user = { claims: { sub: VERCEL_USER_ID } };
+    return next();
+  }
   if (isDev) {
     if (!req.isAuthenticated?.()) {
       (req as any).user = { claims: { sub: DEV_USER_ID } };
     }
     return next();
   }
+  const { isAuthenticated } = require('./replit_integrations/auth');
   return isAuthenticated(req, res, next);
 };
 
@@ -49,8 +58,18 @@ async function main() {
   app.use(cors());
   app.use(express.json({ limit: '2mb' }));
 
-  await setupAuth(app);
-  registerAuthRoutes(app);
+  if (isReplit && !isDev) {
+    const { setupAuth, registerAuthRoutes } = require('./replit_integrations/auth');
+    await setupAuth(app);
+    registerAuthRoutes(app);
+  } else if (isReplit && isDev) {
+    const { setupAuth, registerAuthRoutes } = require('./replit_integrations/auth');
+    await setupAuth(app);
+    registerAuthRoutes(app);
+    console.log('Running in development mode - auth bypass enabled');
+  } else {
+    console.log('Running on Vercel - auth disabled');
+  }
 
   app.post('/api/sales/analysis', requireAuth, async (req: any, res) => {
     const userId = req.user?.claims?.sub;

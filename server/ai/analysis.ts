@@ -5,6 +5,7 @@ import type {
   CoachingMetrics,
   CompetitorMention,
   CompetitorInsights,
+  IntentBucket,
   SalesTranscriptAnalysisRequest,
   SalesTranscriptAnalysisResponse,
 } from '../../shared/schema';
@@ -155,16 +156,18 @@ const normalizeIntent = (intent: SalesTranscriptAnalysisResponse['intent']) => {
     [keyof typeof scaled, number]
   >).sort((a, b) => b[1] - a[1])[0][0];
 
+  const primaryBucket =
+    primary === 'buyNow'
+      ? 'BuyNow'
+      : primary === 'buySoon'
+        ? 'BuySoon'
+        : primary === 'later'
+          ? 'Later'
+          : 'NoFit';
+
   return {
     ...scaled,
-    primary:
-      primary === 'buyNow'
-        ? 'BuyNow'
-        : primary === 'buySoon'
-          ? 'BuySoon'
-          : primary === 'later'
-            ? 'Later'
-            : 'NoFit',
+    primary: primaryBucket as IntentBucket,
   };
 };
 
@@ -372,7 +375,7 @@ export const analyzeTranscriptFallback = (
       buySoon: 35,
       later: 25,
       noFit: 15,
-      primary: 'BuySoon',
+      primary: 'BuySoon' as IntentBucket,
     },
     signals: ['No strong intent cues detected from the transcript.'],
     blockers: ['Budget, timeline, and decision-maker clarity are unconfirmed.'],
