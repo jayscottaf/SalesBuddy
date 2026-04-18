@@ -1,0 +1,154 @@
+.magic-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f6f7fb 0%, #eef2ff 100%);
+  padding: 24px;
+}
+
+.magic-login__card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px 36px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid #eef2f7;
+}
+
+.magic-login__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.magic-login__logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.magic-login__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.magic-login__card h2 {
+  margin: 0 0 6px 0;
+  font-size: 24px;
+  color: #111827;
+}
+
+.magic-login__sub {
+  margin: 0 0 24px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.magic-login__label {
+  display: block;
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.magic-login__label input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+}
+
+.magic-login__label input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.magic-login__submit {
+  width: 100%;
+  padding: 11px;
+  background: #2563eb;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.magic-login__submit:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.magic-login__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.magic-login__error {
+  margin-top: 12px;
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.magic-login__sent {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.magic-login__check {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 auto 16px auto;
+}
+
+.magic-login__sent h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #111827;
+}
+
+.magic-login__sent p {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+}
+
+.magic-login__link {
+  background: none;
+  border: 0;
+  color: #2563eb;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+}

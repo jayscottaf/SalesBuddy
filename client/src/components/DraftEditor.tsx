@@ -9,6 +9,35 @@ interface DraftEditorProps {
   recipientValue?: string;
   subjectLine?: string;
   onAiImprove?: (content: string) => Promise<string>;
+  recipientEmail?: string;
+}
+
+function buildGmailUrl(to: string, subject: string, body: string): string {
+  const q = new URLSearchParams({
+    view: 'cm',
+    fs: '1',
+    to,
+    su: subject,
+    body,
+  });
+  return `https://mail.google.com/mail/?${q.toString()}`;
+}
+
+function buildOutlookUrl(to: string, subject: string, body: string): string {
+  const q = new URLSearchParams({
+    to,
+    subject,
+    body,
+  });
+  return `https://outlook.office.com/mail/deeplink/compose?${q.toString()}`;
+}
+
+function splitSubjectBody(text: string): { subject: string; body: string } {
+  const m = text.match(/^Subject:\s*(.+)$/im);
+  if (!m) return { subject: '', body: text };
+  const subject = m[1].trim();
+  const body = text.replace(m[0], '').trim();
+  return { subject, body };
 }
 
 export default function DraftEditor({
@@ -19,6 +48,7 @@ export default function DraftEditor({
   recipientValue = '',
   subjectLine,
   onAiImprove,
+  recipientEmail,
 }: DraftEditorProps) {
   const [content, setContent] = useState(initialContent);
   const [isEditing, setIsEditing] = useState(false);
@@ -264,12 +294,35 @@ export default function DraftEditor({
         dangerouslySetInnerHTML={{ __html: formatInitialContent(initialContent) }}
       />
 
-      {isEditing && (
+      {icon === 'email' && (
         <div className="draft-footer">
-          <button type="button" className="draft-send-btn">
-            {icon === 'email' ? 'Open in Gmail' : 'Copy Script'}
+          <button
+            type="button"
+            className="draft-send-btn"
+            onClick={() => {
+              const raw = editorRef.current?.innerText || content;
+              const { subject, body } = splitSubjectBody(raw);
+              const to = recipientEmail || '';
+              const url = buildGmailUrl(to, subject || subjectLine || 'Following up', body);
+              window.open(url, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            Open in Gmail
           </button>
-          <span className="draft-hint">Press Ctrl+B for bold, Ctrl+I for italic</span>
+          <button
+            type="button"
+            className="draft-send-btn draft-send-btn--secondary"
+            onClick={() => {
+              const raw = editorRef.current?.innerText || content;
+              const { subject, body } = splitSubjectBody(raw);
+              const to = recipientEmail || '';
+              const url = buildOutlookUrl(to, subject || subjectLine || 'Following up', body);
+              window.open(url, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            Open in Outlook
+          </button>
+          {isEditing && <span className="draft-hint">Press Ctrl+B for bold, Ctrl+I for italic</span>}
         </div>
       )}
     </div>

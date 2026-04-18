@@ -274,7 +274,7 @@ export const analyzeTranscriptWithAI = async (
   const coaching = computeCoachingMetrics(request.transcript, request.sellerName);
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+    model: process.env.OPENAI_MODEL || 'gpt-5.2',
     max_completion_tokens: 2500,
     messages: [
       {
@@ -442,7 +442,7 @@ Keep the same general approach, but make it more effective and easier to use.
 Return ONLY the improved script text, no explanations.`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+    model: process.env.OPENAI_MODEL || 'gpt-5.2',
     max_completion_tokens: 1500,
     messages: [
       { role: 'system', content: systemPrompt },
@@ -517,7 +517,7 @@ Return ONLY valid JSON, no additional text.`;
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-5.2',
+      model: process.env.OPENAI_MODEL || 'gpt-5.2',
       max_completion_tokens: 1000,
       messages: [
         { role: 'system', content: systemPrompt },

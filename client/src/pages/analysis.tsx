@@ -9,6 +9,7 @@ import AccountAnalysis from '../components/AccountAnalysis';
 import SalespersonDashboard from '../components/SalespersonDashboard';
 import TeamManagement from '../components/TeamManagement';
 import AdminFeedback from '../components/AdminFeedback';
+import QAPanel from '../components/QAPanel';
 import './analysis.css';
 
 const parseParticipants = (raw: string) =>
@@ -280,6 +281,15 @@ export default function AnalysisPage() {
   const extractSubject = (emailDraft: string): string | undefined => {
     const match = emailDraft.match(/^Subject:\s*(.+)$/im);
     return match ? match[1].trim() : undefined;
+  };
+
+  const extractRecipientEmail = (participants?: string[]): string | undefined => {
+    if (!participants) return undefined;
+    for (const p of participants) {
+      const m = p.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+      if (m) return m[1];
+    }
+    return undefined;
   };
 
   // Get account names sorted by most recent meeting
@@ -712,6 +722,7 @@ export default function AnalysisPage() {
                         recipientLabel="To"
                         recipientValue={analysis.accountName ? `${analysis.accountName} Contact` : 'Prospect'}
                         subjectLine={extractSubject(analysis.followUp.emailDraft)}
+                        recipientEmail={extractRecipientEmail(analysis.participants)}
                         onAiImprove={(content) => handleAiImprove(content, 'email')}
                       />
 
@@ -722,6 +733,8 @@ export default function AnalysisPage() {
                         onAiImprove={(content) => handleAiImprove(content, 'callScript')}
                       />
                     </div>
+
+                    <QAPanel analysisId={analysis.id} persisted={!!selectedId && selectedId === analysis.id} />
                     <div>
                       <h4>Coaching metrics</h4>
                       <p>

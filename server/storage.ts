@@ -11,7 +11,8 @@ export const analysisStore = {
   save: async (
     analysis: SalesTranscriptAnalysisResponse,
     userId?: string,
-    teamId?: string
+    teamId?: string,
+    transcript?: string
   ): Promise<SalesTranscriptAnalysisResponse> => {
     await db.insert(analyses).values({
       id: analysis.id,
@@ -22,6 +23,7 @@ export const analysisStore = {
       participants: analysis.participants,
       sellerName: analysis.sellerName,
       notes: analysis.notes,
+      transcript,
       summary: analysis.summary,
       intent: analysis.intent,
       signals: analysis.signals,
@@ -33,6 +35,36 @@ export const analysisStore = {
       competitorInsights: analysis.competitorInsights,
     });
     return analysis;
+  },
+
+  getWithTranscript: async (
+    id: string
+  ): Promise<{ analysis: SalesTranscriptAnalysisResponse; transcript: string | null; userId: string | null; teamId: string | null } | undefined> => {
+    const [result] = await db.select().from(analyses).where(eq(analyses.id, id));
+    if (!result) return undefined;
+    return {
+      analysis: {
+        id: result.id,
+        createdAt: result.createdAt.toISOString(),
+        meetingDate: result.meetingDate ?? undefined,
+        accountName: result.accountName ?? undefined,
+        participants: result.participants ?? undefined,
+        sellerName: result.sellerName ?? undefined,
+        notes: result.notes ?? undefined,
+        summary: result.summary,
+        intent: result.intent,
+        signals: result.signals,
+        blockers: result.blockers,
+        nextSteps: result.nextSteps,
+        followUp: result.followUp,
+        coaching: result.coaching,
+        competitors: result.competitors ?? undefined,
+        competitorInsights: result.competitorInsights ?? undefined,
+      },
+      transcript: result.transcript,
+      userId: result.userId,
+      teamId: result.teamId,
+    };
   },
 
   list: async (

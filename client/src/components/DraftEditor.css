@@ -247,7 +247,8 @@
 .draft-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 8px;
   padding: 12px 16px;
   background: #f8fafc;
   border-top: 1px solid #e2e8f0;
@@ -267,6 +268,20 @@
 
 .draft-send-btn:hover {
   background: #1540d9;
+}
+
+.draft-send-btn--secondary {
+  background: #fff;
+  color: #1b4dff;
+  border: 1px solid #c7d2fe;
+}
+
+.draft-send-btn--secondary:hover {
+  background: #eef2ff;
+}
+
+.draft-footer .draft-hint {
+  margin-left: auto;
 }
 
 .draft-hint {

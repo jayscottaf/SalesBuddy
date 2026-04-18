@@ -1,4 +1,4 @@
-import { eq, or } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { db } from "./db";
 import {
   teams,
@@ -90,16 +90,11 @@ export const teamStore = {
   },
 
   isMember: async (teamId: string, userId: string): Promise<boolean> => {
-    const [member] = await db
-      .select()
+    const rows = await db
+      .select({ userId: teamMembers.userId })
       .from(teamMembers)
-      .where(eq(teamMembers.teamId, teamId));
-    
-    const members = await db
-      .select()
-      .from(teamMembers)
-      .where(eq(teamMembers.teamId, teamId));
-    
-    return members.some((m) => m.userId === userId);
+      .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)))
+      .limit(1);
+    return rows.length > 0;
   },
 };
