@@ -68,13 +68,6 @@ export function registerMagicLinkRoutes(app: Express): void {
       if (user) return res.json(user);
       return res.json({ id: session.userId, email: session.email });
     }
-    // Fall through to Replit Auth handler (registered separately) if Replit session exists on req.user.
-    if ((req as any).isAuthenticated?.() && (req as any).user?.claims?.sub) {
-      const sub = (req as any).user.claims.sub;
-      const [user] = await db.select().from(users).where(eq(users.id, sub));
-      if (user) return res.json(user);
-      return res.json({ id: sub, email: (req as any).user.claims.email });
-    }
     return res.status(401).json({ message: 'Not signed in.' });
   });
 }

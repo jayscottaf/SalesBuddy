@@ -1,9 +1,8 @@
 import type { RequestHandler } from 'express';
 import { readSessionFromRequest } from './session';
 
-const isReplit = !!process.env.REPL_ID;
-const isVercel = !!process.env.VERCEL;
 const isDev = process.env.NODE_ENV !== 'production';
+const allowDevBypass = isDev && process.env.DISABLE_DEV_BYPASS !== '1' && !process.env.VERCEL;
 const DEV_USER_ID = 'dev-user-id';
 const DEV_USER_EMAIL = 'dev@local';
 
@@ -12,9 +11,8 @@ function applyClaims(req: any, userId: string, email?: string) {
 }
 
 // Unified auth resolver. Priority:
-//   1. Signed magic-link session cookie (works everywhere, including Vercel)
-//   2. Replit Auth session (only on Replit, production)
-//   3. Dev bypass (only on non-production non-Vercel, e.g. local/Replit dev)
+//   1. Signed magic-link session cookie
+//   2. Dev bypass (only on local/non-production, disabled automatically on Vercel)
 export const resolveUser: RequestHandler = (req, _res, next) => {
   const session = readSessionFromRequest(req);
   if (session) {
@@ -22,12 +20,7 @@ export const resolveUser: RequestHandler = (req, _res, next) => {
     return next();
   }
 
-  if (isReplit && !isDev && req.isAuthenticated?.()) {
-    // Replit Auth has already set req.user via passport
-    return next();
-  }
-
-  if (isDev && !isVercel) {
+  if (allowDevBypass) {
     applyClaims(req, DEV_USER_ID, DEV_USER_EMAIL);
     return next();
   }
@@ -42,7 +35,6 @@ export const requireAuth: RequestHandler = (req: any, res, next) => {
   });
 };
 
-// Used for feedback — accept anonymous but attach user when available.
 export const optionalAuth: RequestHandler = (req, res, next) => {
   resolveUser(req, res, next);
 };
