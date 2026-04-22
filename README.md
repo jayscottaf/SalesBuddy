@@ -39,8 +39,8 @@ vercel.json         Build, rewrites, cron schedule
 | `OPENAI_MODEL`              | no       | Defaults to `gpt-5.2` |
 | `RESEND_API_KEY`            | no       | If unset, emails are logged to stdout instead of sent |
 | `EMAIL_FROM`                | no       | e.g. `Salesbuddy <no-reply@yourdomain.com>` |
-| `UPSTASH_REDIS_REST_URL`    | prod     | Required in prod for rate limiting to actually limit |
-| `UPSTASH_REDIS_REST_TOKEN`  | prod     | Companion token |
+| `UPSTASH_REDIS_REST_URL`    | prod     | Required in prod for rate limiting to actually limit. `KV_REST_API_URL` is also accepted (Vercel's marketplace integration sometimes injects that name instead). |
+| `UPSTASH_REDIS_REST_TOKEN`  | prod     | Companion token. `KV_REST_API_TOKEN` is also accepted. |
 | `CRON_SECRET`               | prod     | Vercel Cron sends it as `Authorization: Bearer <secret>` |
 
 ## Local development
