@@ -36,7 +36,7 @@ vercel.json         Build, rewrites, cron schedule
 | `SESSION_SECRET`            | yes      | Signs the magic-link session cookie — any long random string |
 | `APP_URL`                   | yes      | Public URL used in emails (`https://app.example.com`) |
 | `OPENAI_API_KEY`            | no       | If unset, the app uses deterministic fallback analysis |
-| `OPENAI_MODEL`              | no       | Defaults to `gpt-5.2` |
+| `OPENAI_MODEL`              | no       | Defaults to `gpt-5.3` |
 | `RESEND_API_KEY`            | no       | If unset, emails are logged to stdout instead of sent |
 | `EMAIL_FROM`                | no       | e.g. `Salesbuddy <no-reply@yourdomain.com>` |
 | `UPSTASH_REDIS_REST_URL`    | prod     | Required in prod for rate limiting to actually limit. `KV_REST_API_URL` is also accepted (Vercel's marketplace integration sometimes injects that name instead). |

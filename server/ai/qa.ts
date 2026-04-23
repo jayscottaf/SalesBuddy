@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import type { SalesTranscriptAnalysisResponse } from '../../shared/schema';
 
-const MODEL = process.env.OPENAI_MODEL || 'gpt-5.2';
+const MODEL = process.env.OPENAI_MODEL || 'gpt-5.3';
 const MAX_TRANSCRIPT_CHARS = 12000;
 
 export interface QAExchange {
