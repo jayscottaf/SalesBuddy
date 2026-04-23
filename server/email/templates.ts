@@ -1,6 +1,6 @@
 import type { SalesTranscriptAnalysisResponse } from '../../shared/schema';
 
-const BASE = (body: string, title: string) => `<!doctype html>
+const BASE = (body: string, title: string, appUrl?: string) => `<!doctype html>
 <html>
 <head>
 <meta charset="utf-8"/>
@@ -15,7 +15,7 @@ const BASE = (body: string, title: string) => `<!doctype html>
         ${body}
       </td></tr>
     </table>
-    <div style="font-size:12px;color:#9ca3af;margin-top:16px;">You're receiving this because you use Salesbuddy. <a href="{{UNSUB_URL}}" style="color:#9ca3af;">Manage preferences</a></div>
+    <div style="font-size:12px;color:#9ca3af;margin-top:16px;">You're receiving this because you use Salesbuddy. <a href="${appUrl ? escapeHtml(appUrl + '/settings') : '#'}" style="color:#9ca3af;">Manage preferences</a></div>
   </td></tr>
 </table>
 </body>
@@ -182,7 +182,7 @@ export function renderWeeklyDigest(params: {
     ${params.topTip ? `<div style="background:#dbeafe;border-left:3px solid #2563eb;padding:10px 12px;border-radius:6px;font-size:14px;margin:12px 0;"><strong>Coaching tip:</strong> ${escapeHtml(params.topTip)}</div>` : ''}
 
     <p style="margin:20px 0 0 0;">${button(params.appUrl, 'Open Salesbuddy')}</p>
-  `, subject);
+  `, subject, params.appUrl);
 
   const text = `Your week in review — ${params.analyses.length} meetings. Avg talk: ${params.avgTalkRatio}%. Avg open Qs: ${params.avgQuestionScore}%. Open: ${params.appUrl}`;
   return { subject, html, text };
